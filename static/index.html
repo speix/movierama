@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MovieRama - movies social platform</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.9/css/all.css" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<div v-cloak id="root">
+
+    <section class="hero is-bold is-dark">
+        <div class="hero-body">
+            <nav class="navbar">
+                <div class="container">
+                    <div class="container">
+                        <h1 class="title">
+                            <a href="/">MovieRama</a>
+                            <i class="fas fa-video"></i>
+                        </h1>
+                        <h2 class="subtitle">
+                            Movies Social Platform
+                        </h2>
+                    </div>
+
+                    <div id="navbarMenuHeroA" class="navbar-menu">
+                        <div v-if="!logged" class="navbar-end">
+                            <a class="navbar-item is-link" href="#" @click="showLoginModal()" >
+                                <span>Log in</span>
+                            </a>
+                            <span class="navbar-item">or</span>
+                            <span class="navbar-item">
+                                <a class="button is-link" href="#" @click="showSignUpModal()">
+                                    <span class="icon">
+                                        <i class="fa fa-user"></i>
+                                    </span>
+                                    <span>Sign Up</span>
+                                </a>
+                            </span>
+                        </div>
+                        <div v-else class="navbar-end">
+                            <a class="navbar-item is-link" @click="getMoviesSortedBy('created', connectedUserID)">
+                                {{connectedUserName}}
+                            </a>
+                            <span class="navbar-item">
+                                <a class="button is-link" @click="signOut()">
+                                    <span class="icon">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                    </span>
+                                    <span>Logout</span>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+            </nav>
+        </div>
+    </section>
+
+    <div class="container">
+
+        <section class="section">
+
+            <!-- Movies Sorting Nav -->
+            <nav class="level box">
+                <div class="level-left">
+                    <p class="level-item"><strong>Sort by:</strong></p>
+                    <p class="level-item"><a @click="getMoviesSortedBy('likes', currentUserID)">Likes</a></p>
+                    <p class="level-item">|</p>
+                    <p class="level-item"><a @click="getMoviesSortedBy('hates', currentUserID)">Hates</a></p>
+                    <p class="level-item">|</p>
+                    <p class="level-item"><a @click="getMoviesSortedBy('created', currentUserID)">Date</a></p>
+                    <p v-if="displayUser" class="level-item">
+                        <a class="button is-info" @click="getMoviesSortedBy('created', '')">
+                            <span class="icon"><i class="fas fa-times-circle"></i></span>
+                            <strong>{{ currentUserNameMovies }}</strong>
+                        </a>
+                    </p>
+                </div>
+            </nav>
+
+            <div class="columns">
+
+                <!-- Movies List -->
+                <div class="column is-10">
+
+                    <!-- Movie item -->
+                    <div v-for="(movie, index) in movies" class="box">
+                        <article class="media">
+                            <div class="media-content">
+                                <div class="content is-medium">
+                                    <h1><strong>{{ movie.title }}</strong></h1>
+                                    <p>
+                                        Posted by <a @click="getMoviesSortedBy('created', movie.user_id)"><strong>{{ movie.user.name }}</strong></a> {{ movie.created }}
+                                    </p>
+                                    <p>
+                                        {{ movie.description }}
+                                    </p>
+                                </div>
+
+                                <nav class="level">
+
+                                    <div class="level-left">
+                                        <p v-if="movie.votes === 0 && !movie.is_owner" class="level-item"><strong>Be the fist to vote for this movie:</strong></p>
+
+                                        <p class="level-item">
+                                            <a @click="voteMovie(movie.movie_id, 'like', index)">
+                                                <span class="icon"><i class="fas fa-thumbs-up"></i></span>
+                                                <span>{{movie.likes}}</span>
+                                            </a>
+                                        </p>
+                                        <p class="level-item">|</p>
+                                        <p class="level-item">
+                                            <a @click="voteMovie(movie.movie_id, 'hate', index)">
+                                                <span class="icon"><i class="fas fa-thumbs-down"></i></span>
+                                                <span>{{movie.hates}}</span>
+                                            </a>
+                                        </p>
+
+                                    </div>
+
+                                    <div v-if="!movie.is_owner && movie.can_retract" class="level-right">
+                                        <p class="level-item">
+                                            <a class="button is-danger is-small" @click="retractVote(movie.movie_id, index)">
+                                                <strong>{{movie.retract_action}} movie</strong>
+                                            </a>
+                                        </p>
+                                    </div>
+
+                                </nav>
+
+                            </div>
+                        </article>
+                    </div>
+                    <!-- End of Movie Item -->
+
+                </div>
+                <!-- End of Movie List
+
+                <!-- New Movie Button -->
+                <div v-if="logged" class="column">
+                    <a class="button is-success is-large" @click="showMovieModal()">
+                        <span class="icon">
+                            <i class="fa fa-film"></i>
+                        </span>
+                        <span>New Movie</span>
+                    </a>
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="content has-text-centered">
+                <p>
+                    <strong>MovieRama</strong> developed by <a href="https://www.supergramm.com" target="_blank">speix</a>. <br/>
+
+                    Source code available on Github:
+                    <a href="https://github.com/speix/movierama" target="_blank">
+                        <span class="icon">
+                            <i class="fab fa-github"></i>
+                        </span>
+                        github.com/speix/movierama
+                    </a> <br/>
+
+                    Dockerized version available on DockerHub:
+                    <a href="https://hub.docker.com/r/supergramm/movierama/" target="_blank">
+                        <span class="icon">
+                            <i class="fab fa-docker"></i>
+                        </span>
+                        supergramm/movierama:latest
+                    </a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+
+    <modal v-if="modal" @close="modal = false">
+
+        <template slot="modal-title">{{ modalTitle }}</template>
+
+        <template slot="modal-content">
+
+            <div v-if="loginForm">
+
+                <div class="field">
+                    <label class="label">Email</label>
+                    <div class="control has-icons-left has-icons-right">
+                        <input v-model="sEmail" class="input" type="email" placeholder="Email.." value="">
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-envelope"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control has-icons-left has-icons-right">
+                        <input v-model="sPassword" class="input" type="password" placeholder="Password.." value="">
+                        <span class="icon is-small is-left">
+                                <i class="fa fa-lock"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button class="button is-link" @click="signIn(sEmail, sPassword)">Log in</button>
+                        <button class="button is-light" @click="closeModal()">Close</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div v-if="signUpForm">
+
+                <div class="field">
+                    <label class="label">Email</label>
+                    <div class="control has-icons-left has-icons-right">
+                        <input v-model="sEmail" class="input" type="email" placeholder="Email.." value="">
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-envelope"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control has-icons-left has-icons-right">
+                        <input v-model="sPassword" class="input" type="password" placeholder="Password.." value="">
+                        <span class="icon is-small is-left">
+                                <i class="fa fa-lock"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Name</label>
+                    <div class="control has-icons-left has-icons-right">
+                        <input v-model="sName" class="input" type="text" placeholder="Name.." value="">
+                        <span class="icon is-small is-left">
+                                <i class="fa fa-user"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button class="button is-link" @click="signUp(sEmail, sPassword, sName)">Sign up</button>
+                        <button class="button is-light" @click="closeModal()">Close</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div v-if="movieForm">
+
+                <div class="field">
+                    <label class="label">Title</label>
+                    <div class="control has-icons-left has-icons-right">
+                        <input v-model="sTitle" class="input" type="text" placeholder="Movie title.." value="">
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-film"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Description</label>
+                    <div class="control">
+                        <textarea v-model="sDescription" class="textarea" placeholder="Movie description.."></textarea>
+                    </div>
+                </div>
+
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button class="button is-link" @click="submitMovie(sTitle, sDescription)">Submit Movie</button>
+                        <button class="button is-light" @click="closeModal()">Close</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </template>
+
+    </modal>
+
+</div>
+
+<script src="js/vue.js"></script>
+<script src="https://unpkg.com/vue-toasted"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.0"></script>
+<script src="js/components.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+movierama:
+    container_name: movierama
+    image: supergramm/movierama:latest
+    restart: always
+    environment:
+      - MR_SERVER_PORT=
+    ports:
+      - ":"
