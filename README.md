@@ -98,7 +98,3 @@ github.com/gorilla/mux
 
 ### Docker image hosted on DockerHub
 https://hub.docker.com/r/supergramm/movierama/
-
-### Preview
-The app is deployed on the Elastic Container Service of AWS:  
-http://ec2-18-196-125-219.eu-central-1.compute.amazonaws.com
